@@ -18,12 +18,12 @@ public:
 		size_t num_threads = std::thread::hardware_concurrency();
 		size_t block_size = num_rays / num_threads;
 		size_t remainder = num_rays % num_threads;
-		std::vector<std::thread> threads{ num_threads - 1 };
+		std::vector<std::thread> threads{};
 		size_t offset = 0;
-		for (size_t i = 0; i < threads.size(); ++i)
+		for (size_t i = 0; i < num_threads - 1; ++i)
 		{
 			size_t next_offset = offset + block_size + (i < remainder);
-			threads[i] = std::thread{ [&] (){ProjectHelper(cast, offset, next_offset, num_rays); } };
+			threads.emplace_back([=]() {ProjectHelper(cast, offset, next_offset, num_rays); });
 			offset = next_offset;
 		}
 		ProjectHelper(cast, offset, num_rays, num_rays);
