@@ -21,7 +21,6 @@ public:
 	void Calculate()
 	{
 		audio_source_->Project([this](Ray r) { Cast(r); });
-		int i = 0;
 	}
 
 	void Draw(WndState &wnd_state, AABB space) const
