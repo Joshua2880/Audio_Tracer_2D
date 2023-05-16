@@ -6,4 +6,4 @@ A 2D prototype of impulse response bakeing, using raytracing to precalculate imp
 
 Ray leakage occurs occasionaly at boundries, this is possible due to floating point error.
 
-Memory requirements make render the concept impractical.
+Memory requirements render the concept impractical for any impulse response of significant length and space of significant size.
