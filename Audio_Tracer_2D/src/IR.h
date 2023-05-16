@@ -3,6 +3,7 @@
 #include <cmath>
 #include <complex>
 #include <corecrt_math_defines.h>
+#include <mutex>
 #include <vector>
 
 #include "Globals.h"
@@ -10,11 +11,13 @@
 class IR
 {
 public:
-	IR(size_t sample_length) : clip_{ std::vector<float>(sample_length) } {}
+	IR(size_t sample_length) : m_{}, clip_ { std::vector<float>(sample_length) } {}
+	IR(IR const &o) : m_{}, clip_ { std::vector<float>(o.clip_.size()) } {}
 
 	void Add(double time, float amplitude)
 	{
 		double offset = time * SAMPLE_RATE;
+		std::unique_lock lock{ m_ };
 		for (size_t i = 0; i < BINS; ++i)
 		{
 			double pos = M_PI * static_cast<double>(i) - offset;
@@ -36,5 +39,6 @@ public:
 	}
 
 private:
+	std::mutex m_;
 	std::vector<float> clip_;
 };

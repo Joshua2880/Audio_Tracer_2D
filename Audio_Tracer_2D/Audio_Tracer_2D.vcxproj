@@ -147,13 +147,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\AudioSource.cpp" />
     <ClCompile Include="src\Audio_Tracer_2D.cpp" />
-    <ClCompile Include="src\Object.cpp" />
-    <ClCompile Include="src\IR.cpp" />
-    <ClCompile Include="src\IRArray.cpp" />
     <ClCompile Include="src\Random.cpp" />
-    <ClCompile Include="src\Tracer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\AABB.h" />

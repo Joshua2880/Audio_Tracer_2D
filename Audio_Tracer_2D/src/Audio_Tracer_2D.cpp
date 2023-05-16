@@ -59,9 +59,10 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prev_inst, LPSTR cmd_line, int show
 
 	ShowWindow(hwnd, show);
 
-	app_state.tracer = new Tracer{ { -1, -1, 1, 1}, {0, 0} };
+	app_state.tracer = new Tracer{ { -1, -1, 1, 1}, {0.0, 0} };
 	//Object o{ {{-0.5, -0.5}, {0.5, -0.5}, {0.5, 0.5}, {-0.5, 0.5}}, {{0, 1}, {1, 2}, {2, 3}, {3, 0}} };
 	Object o{ {{0.2, 0.2}, {0.2, -0.2}, {0.6, -0.2}, {0.6, 0.6}, {-0.6, 0.6}, {-0.6, 1.0}, {1.0, 1.0}, {1.0, -0.6}, {-0.2, -0.6}, {-0.2, 0.2}}, {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {4, 5}, {5, 6}, {6, 7}, {7, 8}, {8, 9}, {9, 0}} };
+	//Object o{ {{0.0, 1.0}, {0.0, 0.1}, {0.0, 0.05}, {0.0, -0.05}, {0.0, -0.1}, {0.0, -1.0}}, {{0, 1}, {2, 3}, {4, 5}} };
 	app_state.tracer->AddObject(o);
 	app_state.tracer->Calculate();
 	app_state.freq_bin = BINS / 8;
@@ -170,13 +171,13 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			{
 				case VK_UP:
 				{
-					state->freq_bin += BINS / 256;
+					state->freq_bin += 1;
 					state->freq_bin = std::max<int64_t>(0, std::min<int64_t>(state->freq_bin, BINS / 2));
 					break;
 				}
 				case VK_DOWN:
 				{
-					state->freq_bin -= BINS / 256;
+					state->freq_bin -= 1;
 					state->freq_bin = std::max<int64_t>(0, std::min<int64_t>(state->freq_bin, BINS / 2));
 					break;
 				}

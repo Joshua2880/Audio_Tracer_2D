@@ -15,7 +15,7 @@ public:
 	void Project(F const &cast) const
 	{
 		size_t num_rays = 100000;
-		size_t num_threads = std::thread::hardware_concurrency();
+		size_t num_threads = 2 * std::thread::hardware_concurrency();
 		size_t block_size = num_rays / num_threads;
 		size_t remainder = num_rays % num_threads;
 		std::vector<std::thread> threads{};

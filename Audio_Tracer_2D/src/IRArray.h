@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <cstdint>
+#include <thread>
 
 #include "Globals.h"
 #include "AABB.h"
@@ -36,24 +37,29 @@ public:
 		transformed_bounds.y_max -= space.y_min;
 		transformed_bounds *= ratio;
 
-		for (size_t i = 0; i < clips_.size(); ++i)
-		{
-			for (size_t j = 0; j < clips_[0].size(); ++j)
-			{
-				//float mag = (10 * log10(abs(clips_[i][j].BinMagnitude(wnd_state.freq_bin))) + 10) / 20;
-				float mag = abs(clips_[i][j].BinMagnitude(wnd_state.freq_bin)) / 100.0;
-				//float mag = (10 * log10(abs(clips_[i][j].BinMagnitude(wnd_state.freq_bin))) + 1.0) / 1.0;
+		size_t num_threads = std::thread::hardware_concurrency();
+		size_t block_size = clips_.size() / num_threads;
+		size_t remainder = clips_.size() % num_threads;
+		std::vector<std::thread> threads{};
 
-				mag = std::max<float>(0, std::min<float>(mag, 1));
-				uint8_t mag_i = std::min<int>(256 * mag, 255);
-				static_cast<uint32_t*>(wnd_state.bitmap_memory)[(i + static_cast<size_t>(transformed_bounds.x_min)) + (j + static_cast<size_t>(transformed_bounds.y_min)) * wnd_state.bitmap_info.bmiHeader.biWidth] = 256 * mag_i;
-			}
+		size_t offset = 0;
+		for (size_t i = 0; i < num_threads - 1; ++i)
+		{
+			size_t next_offset = offset + block_size + (i < remainder);
+			threads.emplace_back([=, &wnd_state] () { DrawHelper(wnd_state, transformed_bounds, offset, next_offset); });
+			offset = next_offset;
+		}
+		DrawHelper(wnd_state, transformed_bounds, offset, clips_.size());
+
+		for (size_t i = 0; i < threads.size(); ++i)
+		{
+			threads[i].join();
 		}
 
-		DrawLine(wnd_state, { transformed_bounds.x_min, transformed_bounds.y_min }, { transformed_bounds.x_min, transformed_bounds.y_max });
-		DrawLine(wnd_state, { transformed_bounds.x_min, transformed_bounds.y_max }, { transformed_bounds.x_max, transformed_bounds.y_max });
-		DrawLine(wnd_state, { transformed_bounds.x_max, transformed_bounds.y_max }, { transformed_bounds.x_max, transformed_bounds.y_min });
-		DrawLine(wnd_state, { transformed_bounds.x_max, transformed_bounds.y_min }, { transformed_bounds.x_min, transformed_bounds.y_min });
+		//DrawLine(wnd_state, { transformed_bounds.x_min, transformed_bounds.y_min }, { transformed_bounds.x_min, transformed_bounds.y_max });
+		//DrawLine(wnd_state, { transformed_bounds.x_min, transformed_bounds.y_max }, { transformed_bounds.x_max, transformed_bounds.y_max });
+		//DrawLine(wnd_state, { transformed_bounds.x_max, transformed_bounds.y_max }, { transformed_bounds.x_max, transformed_bounds.y_min });
+		//DrawLine(wnd_state, { transformed_bounds.x_max, transformed_bounds.y_min }, { transformed_bounds.x_min, transformed_bounds.y_min });
 	}
 
 	double getGridSpacing() const { return grid_spacing_; }
@@ -110,7 +116,7 @@ public:
 			double t_at_centre = (centre * grid_spacing_ - r.position + r.time * SPEED_OF_SOUND * r.direction).Magnitude() / SPEED_OF_SOUND;
 			size_t x_i = static_cast<size_t>(centre.x - bounds_.x_min / grid_spacing_);
 			size_t y_i = static_cast<size_t>(centre.y - bounds_.y_min / grid_spacing_);
-			if (x_i < 0 || x_i >= clips_.size() || y_i < 0 || y_i >= clips_[0].size())
+			if (x_i < 0 | x_i >= clips_.size() | y_i < 0 | y_i >= clips_[0].size())
 			{
 				return { {0, 0}, {0, 0}, std::numeric_limits<double>::infinity(), 0 };
 			}
@@ -120,6 +126,23 @@ public:
 	}
 
 private:
+	void DrawHelper(WndState &wnd_state, AABB transformed_bounds, size_t start, size_t end) const
+	{
+		for (size_t i = start; i < end; ++i)
+		{
+			for (size_t j = 0; j < clips_[0].size(); ++j)
+			{
+				//float mag = (10 * log10(abs(clips_[i][j].BinMagnitude(wnd_state.freq_bin))) + 10) / 20;
+				float mag = abs(clips_[i][j].BinMagnitude(wnd_state.freq_bin)) / 100.0f;
+				//float mag = (10 * log10(abs(clips_[i][j].BinMagnitude(wnd_state.freq_bin))) + 1.0) / 1.0;
+
+				mag = std::max<float>(0, std::min<float>(mag, 1));
+				uint8_t mag_i = std::min<int>(256 * mag, 255);
+				static_cast<uint32_t*>(wnd_state.bitmap_memory)[(i + static_cast<size_t>(transformed_bounds.x_min)) + (j + static_cast<size_t>(transformed_bounds.y_min)) * wnd_state.bitmap_info.bmiHeader.biWidth] = 256 * mag_i;
+			}
+		}
+	}
+
 	double const grid_spacing_{ SPEED_OF_SOUND / SAMPLE_RATE };
 	std::vector<std::vector<IR>> clips_{};
 
