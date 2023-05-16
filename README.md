@@ -8,7 +8,7 @@ Simulation bounds and an audio source position is specified in the Tracer constr
 
 ![](https://github.com/Joshua2880/Audio_Tracer_2D/blob/master/media/Render.gif)
 
-## Currenty issues
+## Current issues
 
 Ray leakage occurs occasionaly at boundries, this is possible due to floating point error.
 
